@@ -1,9 +1,9 @@
 <div align="center">
 
-<img src="./banner.svg" alt="Suman Nayak - AI/ML Engineer in training" width="100%"/>
+<img src="./banner (1).svg" alt="Suman Nayak - AI/ML student and builder" width="100%"/>
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-suman--nayak01-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/suman-nayak01/)
-[![GitHub followers](https://img.shields.io/github/followers/Spryzen777?style=flat-square&logo=github&color=181717)](https://github.com/Spryzen777)
+<a href="https://github.com/Spryzen777?tab=followers"><img src="https://img.shields.io/github/followers/Spryzen777?style=for-the-badge&label=FOLLOWERS&labelColor=1b1f3b&color=ff8a1f&logo=github&logoColor=white" alt="GitHub followers"/></a>
+<img src="https://komarev.com/ghpvc/?username=Spryzen777&label=PROFILE%20VIEWS&style=for-the-badge&labelColor=1b1f3b&color=ff8a1f" alt="Profile views"/>
 
 </div>
 
@@ -12,7 +12,7 @@
 - 🎓 BE in AI & Machine Learning @ **HKBK College of Engineering** (since Sep 2024)
 - 👁️ Focus: **Computer Vision**, **Generative AI**, **LLMs**
 - 🛠️ Building: **MemoryMate** (Expo mobile app, in progress)
-- 🏆 Hackathons: **NEXORA** (HKBK, Apr 2026), **Brainovision Solutions Hackathon**
+- 🏆 Hackathons: **NEXORA** (HKBK, Apr 2026) · **Brainovision Solutions Hackathon**
 
 ## ▶ INVENTORY
 
@@ -23,19 +23,25 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black)
 ![Git](https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white)
-![REST](https://img.shields.io/badge/REST_APIs-111827?style=flat-square)
 
 ## ▶ QUESTS COMPLETED
 
 | Project | What it is | Stack |
 |---|---|---|
 | 🛰️ [**Orbital-Eye**](https://github.com/Pavan-Taneesh/Orbital-Eye) | Real-time 3D satellite tracking app (team of 3) | FastAPI · PostgreSQL · React |
-| 💸 [**VALLET**](https://github.com/Spryzen777/VALLET) | AI remittance comparator, built at Brainovision Hackathon | _add stack_ |
+| 💸 [**VALLET**](https://github.com/Spryzen777/VALLET) | AI remittance comparator, Brainovision Hackathon | _add stack_ |
 
-> Replace the two repo links above with the real URLs, and add a one-line "what I personally built" to each.
 
-## ▶ SAVE POINT
 
-📫 [LinkedIn](https://www.linkedin.com/in/suman-nayak01/)
+## ▶ COLLABORATE
 
-<div align="center"><sub>PRESS START TO COLLABORATE</sub></div>
+<div align="center">
+
+<a href="https://www.linkedin.com/in/suman-nayak01/"><img src="https://img.shields.io/badge/LINKEDIN-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"/></a>
+<a href="https://instagram.com/YOUR_INSTA_HANDLE"><img src="https://img.shields.io/badge/INSTAGRAM-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram"/></a>
+<a href="https://github.com/Spryzen777"><img src="https://img.shields.io/badge/GITHUB-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"/></a>
+<a href="https://github.com/Spryzen777?tab=followers"><img src="https://img.shields.io/github/followers/Spryzen777?label=Follow&style=social" alt="Follow on GitHub"/></a>
+
+<sub>PRESS START TO COLLABORATE</sub>
+
+</div>
