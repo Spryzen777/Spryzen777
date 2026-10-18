@@ -55,7 +55,7 @@
 
 <p align="center">
   <a href="https://www.linkedin.com/in/suman-nayak01/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/></a>
-  <a href="https://instagram.com/YOUR_INSTA_HANDLE"><img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white"/></a>
+  <a href="https://instagram.com/https://www.instagram.com/yumeutsutsu_24"><img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white"/></a>
   <a href="https://github.com/Spryzen777"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white"/></a>
   <a href="https://github.com/Spryzen777"><img src="https://img.shields.io/github/followers/Spryzen777?label=Follow&style=social"/></a>
 </p>
