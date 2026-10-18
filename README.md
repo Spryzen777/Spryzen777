@@ -42,15 +42,8 @@ Building software, experimenting with ideas, and learning by creating.
 ## 🚀 Projects
 
 ### 🌌 Orbital Eye
+
 A project exploring space-related data and visualization.
-
-### 🧠 Memory Mate
-A personal AI memory companion project.
-
-### 🌐 Space Website
-A web development project.
-
-- [View Space Website Repository](https://github.com/Pavan-Taneesh/Space-website)
 
 ---
 
@@ -73,6 +66,8 @@ A web development project.
 [![GitHub](https://img.shields.io/badge/GitHub-Spryzen777-181717?style=for-the-badge&logo=github)](https://github.com/Spryzen777)
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/suman-nayak01/)
+
+[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](YOUR_INSTAGRAM_URL)
 
 </div>
 
