@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/Spryzen777/Spryzen777-/main/profile-banner.png" width="100%" alt="Suman Nayak Profile Banner">
 
-# Hi, I'm Suman Nayak 👋
+# Hi, I'm Suman 👋
 
 ### AI & Machine Learning Engineering Student | Developer
 
