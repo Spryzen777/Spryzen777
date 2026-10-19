@@ -1,721 +1,147 @@
-import fs from 'fs';
+// gen.mjs: node gen.mjs [--hs]  ->  banner.svg, grass.svg, index.html
+// Pure SVG + CSS keyframes (no JS at runtime) so the files work inside a GitHub README <img>.
+// Every sprite is an ASCII grid; 1 grid cell = `s` SVG units; shape-rendering=crispEdges keeps it pixel-sharp.
+import { writeFileSync, mkdirSync } from 'node:fs'; mkdirSync('assets',{recursive:true});
+const HS = process.argv.includes('--hs'); // static handshake frame, used only for preview PNGs
 
-// ============================================================================
-// 1. PIXEL ART COMPILER (Renders 2D ASCII Matrices into Crisp SVG <rect> Runs)
-// ============================================================================
-function renderMatrix(matrix, palette, scale = 1, offsetX = 0, offsetY = 0) {
-  let rects = '';
-  for (let y = 0; y < matrix.length; y++) {
-    const row = matrix[y];
-    let x = 0;
-    while (x < row.length) {
-      const char = row[x];
-      if (char === '.' || char === ' ' || !palette[char]) {
-        x++;
-        continue;
-      }
-      let run = 1;
-      while (x + run < row.length && row[x + run] === char) {
-        run++;
-      }
-      rects += `<rect x="${offsetX + x * scale}" y="${offsetY + y * scale}" width="${run * scale}" height="${scale}" fill="${palette[char]}" />`;
-      x += run;
-    }
-  }
-  return rects;
-}
+// ---------- sprite helpers ----------
+const sprite = (rows, pal, s, x = 0, y = 0) => rows.map((r, j) => {
+  let out = '', i = 0;
+  while (i < r.length) {                       // merge horizontal runs -> fewer <rect>s
+    const c = r[i]; let k = i; while (r[k + 1] === c) k++;
+    if (pal[c]) out += `<rect x="${x + i * s}" y="${y + j * s}" width="${(k - i + 1) * s}" height="${s}" fill="${pal[c]}"/>`;
+    i = k + 1;
+  } return out;
+}).join('');
 
-// ============================================================================
-// 2. SPRITE DEFINITIONS
-// ============================================================================
+// ---------- PixelCharacter: front-facing panda (20x26), flat colours, no shading ----------
+const PANDA = [
+ '..KKKK........KKKK..','.KKKKKKKKKKKKKKKKKK.','.KKKKKWWWWWWWWKKKKK.','..KKKWWWWWWWWWWKKK..',
+ '..KWWWWWWWWWWWWWWK..','..KWWWWWWWWWWWWWWK..','..KWWKKKWWWWKKKWWK..','..KWKWKKWWWWKKWKWK..',
+ '..KWKKKKWWWWKKKKWK..','..KWWKKWWWWWWKKWWK..','..KWWWWWWKKWWWWWWK..','..KWPPWWWWWWWWPPWK..',
+ '...KWWWWWWWWWWWWK...','....KKKKKKKKKKKK....','...KKKWWWWWWWWKKK...','..KKKKWWWWWWWWKKKK..',
+ '..KKKKWWWWWWWWKKKK..','..KKKKWWWWWWWWKKKK..','..KKKKWWWWWWWWKKKK..','...KKKWWWWWWWWKKK...',
+ '....KWWWWWWWWWWK....','....KWWWWWWWWWWK....','....KKKKK..KKKKK....','....KKKKK..KKKKK....',
+ '...KKKKKK..KKKKKK...','...KKKKKK..KKKKKK...'];
+const PAL = {
+  panda: { K: '#20142e', W: '#f6f6ff', P: '#ff93ab' },
+  red:   { K: '#4a2a14', W: '#ffb25a', P: '#ff93ab' },   // palette swap for the 2nd friend
+};
+const CANE = [ 'g..g','gg.g','.gdg','.Ll.','.Ll.','.Ll.','.Ll.','.DD.','.Ll.','.Ll.','.Ll.','.Ll.','.DD.',
+  '.Ll.','.Ll.','.Ll.','.Ll.','.DD.','.Ll.','.Ll.','.Ll.','.Ll.','.DD.','.Ll.','.Ll.','.Ll.','.Ll.' ];
+const CANEPAL = { g: '#3c9a4d', d: '#2f7d3e', L: '#8be08f', l: '#4caf50', D: '#2f7d3e' };
+const PixelCharacter = (x, y, s, pal) => sprite(PANDA, PAL[pal], s, x, y);
 
-// A. User's Uploaded Pixel Panda (Blue inner ears, heart nose, blush, bamboo)
-const pandaPalette = {
-  'K': '#14141f', // Black outline & fur
-  'D': '#28293d', // Dark charcoal fur highlight
-  'W': '#ffffff', // Pure white fur
-  'L': '#dce3f2', // Soft blue-grey fur shading
-  'B': '#4c6ef5', // Blue inner ears
-  'N': '#1864ab', // Dark blue heart nose
-  'C': '#4dabf7', // Bright cyan paw pads & nose shine
-  'P': '#ffadb0', // Pink cheek blush
-  'G': '#2b8a3e', // Dark green bamboo
-  'M': '#51cf66', // Mid green bamboo
-  'Y': '#b2f2bb'  // Light green bamboo highlight
+// ---------- PixelBird: 2 wing frames flipped with steps(1) ----------
+const BIRD = [['K.......K','KK.....KK','.KK.K.KK.','..KKKKK..','....K....'],
+              ['....K....','..KKKKK..','.KK.K.KK.','KK.....KK','K.......K']];
+const PixelBird = (y, dur, delay, scale = 4) => `<g class="fly" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y})">
+  <g class="f1">${sprite(BIRD[0], { K: '#2a2d40' }, scale)}</g><g class="f2">${sprite(BIRD[1], { K: '#2a2d40' }, scale)}</g></g></g>`;
+
+// ---------- Wind: pixel streaks that sweep across with steps() ----------
+const streak = (w, y) => `<rect x="0" y="${y}" width="${w}" height="4" fill="#fff" opacity=".85"/><rect x="${w}" y="${y - 4}" width="8" height="4" fill="#fff" opacity=".85"/><rect x="${w + 8}" y="${y - 8}" width="8" height="4" fill="#fff" opacity=".85"/>`;
+const Wind = () => [[60, 150, 3.6, 0], [90, 195, 4.2, -1.4], [48, 120, 3.2, -2.5], [72, 238, 3.9, -0.8]]
+  .map(([w, y, d, dl]) => `<g class="wind" style="animation-duration:${d}s;animation-delay:${dl}s">${streak(w, y)}<rect x="${w + 40}" y="${y + 8}" width="8" height="8" fill="#6fd25a"/></g>`).join(''); // 8x8 leaf rides the gust
+
+// ---------- full 5x7 pixel font (each glyph = 7 rows of 5-bit numbers) ----------
+const FONT = {A:[14,17,17,31,17,17,17],B:[30,17,17,30,17,17,30],C:[14,17,16,16,16,17,14],D:[30,17,17,17,17,17,30],E:[31,16,16,30,16,16,31],
+F:[31,16,16,30,16,16,16],G:[14,17,16,23,17,17,15],H:[17,17,17,31,17,17,17],I:[14,4,4,4,4,4,14],J:[7,2,2,2,2,18,12],K:[17,18,20,24,20,18,17],
+L:[16,16,16,16,16,16,31],M:[17,27,21,21,17,17,17],N:[17,25,21,19,17,17,17],O:[14,17,17,17,17,17,14],P:[30,17,17,30,16,16,16],
+Q:[14,17,17,17,21,18,13],R:[30,17,17,30,20,18,17],S:[15,16,16,14,1,1,30],T:[31,4,4,4,4,4,4],U:[17,17,17,17,17,17,14],V:[17,17,17,17,17,10,4],
+W:[17,17,17,21,21,27,17],X:[17,17,10,4,10,17,17],Y:[17,17,10,4,4,4,4],Z:[31,1,2,4,8,16,31],0:[14,17,19,21,25,17,14],1:[4,12,4,4,4,4,14],
+2:[14,17,1,2,4,8,31],3:[30,1,1,14,1,1,30],4:[2,6,10,18,31,2,2],5:[31,16,30,1,1,17,14],6:[6,8,16,30,17,17,14],7:[31,1,2,4,8,8,8],
+8:[14,17,17,14,17,17,14],9:[14,17,17,15,1,2,12],'.':[0,0,0,0,0,12,12],',':[0,0,0,0,12,4,8],'!':[4,4,4,4,4,0,4],'/':[1,1,2,4,8,16,16],
+'&':[12,18,20,8,21,18,13],'-':[0,0,0,31,0,0,0],':':[0,12,12,0,12,12,0],'+':[0,4,4,31,4,4,0],'>':[16,8,4,2,4,8,16],"'":[4,4,8,0,0,0,0],'@':[14,17,23,23,23,16,14]};
+const F = Object.fromEntries(Object.entries(FONT).map(([k, v]) => [k, v.map(n => n.toString(2).padStart(5, '0').replace(/1/g, '#').replace(/0/g, '.'))]));
+// text(): one <g> per character, typed in one by one (CSS .ty). Works offline, no font files.
+const text = (str, x, y, s, fill, t0, step = 0.15) => [...str].map((ch, i) => F[ch]
+  ? `<g class="ty" style="animation-delay:${(t0 + i * step).toFixed(2)}s">${sprite(F[ch], { '#': fill }, s, x + i * 6 * s, y)}</g>` : '').join('');
+
+// ---------- shared css ----------
+const CSS = `.tw{animation:tw 1s steps(1) infinite}@keyframes tw{50%{opacity:.2}}
+.idle{animation:idle 1.2s steps(1) infinite}@keyframes idle{50%{transform:translateY(-4px)}}
+.ty{animation:ty var(--p,14s) steps(1) infinite backwards}@keyframes ty{0%{opacity:0}.01%{opacity:1}92%{opacity:1}92.01%{opacity:0}}
+.cur{animation:cur 1s steps(1) infinite}@keyframes cur{50%{opacity:0}}
+.f1{animation:fl .5s steps(1) infinite}.f2{animation:fl .5s steps(1) infinite reverse}@keyframes fl{0%{opacity:1}50%{opacity:0}}
+.fly{animation-name:fly;animation-timing-function:steps(60);animation-iteration-count:infinite}@keyframes fly{from{transform:translateX(-60px)}to{transform:translateX(1000px)}}
+.wind{animation-name:wind;animation-timing-function:steps(40);animation-iteration-count:infinite}@keyframes wind{from{transform:translateX(-140px)}to{transform:translateX(1060px)}}
+.sway{animation:sw .8s steps(1) infinite}@keyframes sw{50%{transform:translateX(4px)}}
+.cloud{animation:cl 80s steps(160) infinite}@keyframes cl{from{transform:translateX(-200px)}to{transform:translateX(1040px)}}`;
+
+// =====================  BANNER  =====================
+const Banner = () => {
+  const bands = ['#0a0f2a', '#0b1030', '#101a45', '#162458', '#1d2f6b']
+    .map((c, i) => `<rect y="${i * 56}" width="960" height="64" fill="${c}"/>`).join('');
+  const stars = Array.from({ length: 26 }, (_, i) => `<rect class="tw" style="animation-delay:${(i % 5) * .2}s" x="${(i * 211) % 960}" y="${(i * 97) % 200}" width="4" height="4" fill="${i % 4 ? '#fff' : '#f8e878'}"/>`).join('');
+  const planet = sprite(['..BBBB..','.BBGGBB.','BBGGBBBB','BGGBBBGB','BBBBBGGB','BBBGGGBB','.BBBBBB.','..BBBB..'], { B: '#3d8fd6', G: '#4caf50' }, 6, 816, 20);
+  const frame = `<rect x="24" y="28" width="688" height="234" fill="#bcd0ff"/><rect x="28" y="32" width="680" height="226" fill="#0b1030"/>`;
+  // typewriter lines. NOTE: no "open to collab", no "press start".
+  const txt = text('SUMAN NAYAK', 64, 72, 8, '#ff8a1f', 0.3) + text('AI/ML STUDENT & BUILDER', 64, 156, 4, '#bcd0ff', 2.2)
+    + `<rect class="cur" x="632" y="156" width="12" height="28" fill="#ff8a1f"/>`;
+  const grass = `<rect y="288" width="960" height="32" fill="#2f7d3e"/><rect y="288" width="960" height="8" fill="#4caf50"/>`;
+  const px = 790, py = 288 - 26 * 6 + 8;
+  const panda = `<g class="idle">${PixelCharacter(px, py, 6, 'panda')}${sprite(CANE, CANEPAL, 6, px + 17 * 6, py - 2 * 6 + 6)}
+    ${sprite(['KKK','KKK'], PAL.panda, 6, px + 16 * 6, py + 17 * 6)}</g>`;   // paw drawn over the cane = "holding" it
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" width="960" height="320" shape-rendering="crispEdges" role="img" aria-label="Suman Nayak - pixel banner with a panda holding sugarcane"><style>${CSS}</style>${bands}${stars}${planet}${frame}${txt}${grass}${panda}</svg>`;
 };
 
-const pandaMatrix = [
-  "............K..K.K..............",
-  "...........KK.KKKKK.............",
-  ".....KKKKK..KKKKKK..KKKKK.......",
-  "....KDDDDKKKWWWWWWKKKDDDDK......",
-  "...KDDKBBBKKWWWWWWKKBBBKDDK.....",
-  "...KDKBBBBBKWWWWWWKBBBBBKDK.....",
-  "...KDKBBBBKWWWWWWWWKBBBBKDK.....",
-  "....KKKBBKWWWWWWWWWWKBBKKK......",
-  ".....KKWWWWWWWWWWWWWWWWKK.......",
-  "....KWWWWWWWWWWWWWWWWWWWWK......",
-  "....KWWWWKKKKWWWWKKKKWWWWK......",
-  "...KWWWWKKKKKKWWKKKKKKWWWWK.....",
-  "...KWWWWKKWWKKWWKKWWKKWWWWK.....",
-  "...KWWWWKKWKKKNNKKWKKKWWWWK.....",
-  "...KWWWWKKKKKNNCNKKKKKWWWWK.....",
-  "....KWWWPPWWWWNNWWWWPPWWWK......",
-  "....KWWWWWWWKWWKWKWWWWWWWK......",
-  ".....KWWWWWWWKKKKWWWWWWWK.......",
-  "......KKWWWWWWWWWWWWWWKK........",
-  "...KKKKKKKGGGGMMGGGGKKKK........",
-  "..KDDDDDDKGGGGYYGGGGKDDDK.......",
-  ".KDDDDDDDKMMGGGGKKKKDDDDK.......",
-  ".KDDDDDDKKWWWWWWKDDDDDDDK.......",
-  "..KKKKKK.KWWWWWWWKKKKGGGGMMK....",
-  "........KWWWWWWWWWWWWKGGGGYK....",
-  ".......KWWKKKKWWWWWKKKKKKKK.....",
-  "......KWWKWKDKWWWWWKDKWKWWK.....",
-  "......KWWKKKKKWWWWKKKKKKWWK.....",
-  "......KWWKDDDDKWWKDDDDKWWK......",
-  ".......KKKDDCCKLLKCCDDKKK.......",
-  "........KKDDCCKKKKCCDDKK........",
-  ".........KKKKKK..KKKKKK........."
-];
-
-// B. 64x64 Grid Anime Characters Doing Handshake (32x32 base scaled 2x = 64x64)
-const animePalette = {
-  'K': '#12131a', // Crisp GBA Outline
-  'S': '#ffcdb2', // Skin Light
-  'M': '#e59866', // Skin Shadow
-  'H': '#2b2d42', // Left Hero Spiky Dark Hair
-  'h': '#4a4e69', // Left Hero Hair Highlight
-  'R': '#e63946', // Red Headband & Shoes
-  'r': '#9d0208', // Dark Red Shade
-  'U': '#1d3557', // Hero Blue Tunic
-  'u': '#457b9d', // Hero Tunic Highlight
-  'V': '#8d6e63', // Adventurer Vest / Backpack
-  'v': '#5d4037', // Vest Shadow
-  'G': '#6b705c', // Cargo Pants
-  'g': '#3f4238', // Cargo Pants Shadow
-  'C': '#00b4d8', // Right Rival Cyan/Teal Hair
-  'c': '#90e0ef', // Cyan Hair Highlight
-  'A': '#f72585', // Magenta Anime Hair Streak
-  'J': '#7209b7', // Rival Tech Jacket
-  'j': '#b5179e', // Jacket Highlight
-  'Y': '#ffb703', // Gold Trim / Badge
-  'T': '#3a0ca3', // Dark Jeans
-  'W': '#ffffff'  // Eyes / Shoes Highlight
+// =====================  GRASS SCENE  =====================
+const GrassScene = () => {
+  const sky = ['#6ec1f2', '#86cdf6', '#9ed9f9', '#b5e3fb', '#cdeefd'].map((c, i) => `<rect y="${i * 50}" width="960" height="50" fill="${c}"/>`).join(''); // no sun
+  const cloud = (x, y, d) => `<g class="cloud" style="animation-duration:${d}s;animation-delay:${-d * x / 1240}s"><g transform="translate(0 ${y})">${sprite(['..WWWW....','.WWWWWWW..','WWWWWWWWWW'], { W: '#fff' }, 8)}</g></g>`;
+  const hills = Array.from({ length: 60 }, (_, i) => { const h = 40 + Math.round(18 * Math.sin(i / 5) + 10 * Math.sin(i / 2.3)); return `<rect x="${i * 16}" y="${240 - h}" width="16" height="${h + 30}" fill="#7fcf84"/>`; }).join('');
+  const ground = `<rect y="268" width="960" height="52" fill="#4caf50"/><rect y="296" width="960" height="24" fill="#2f7d3e"/>`;
+  const blades = `<g class="sway">${Array.from({ length: 80 }, (_, i) => `<rect x="${i * 12 + 2}" y="${252 + (i * 7) % 3 * 4}" width="4" height="${12 + (i * 5) % 3 * 4}" fill="${i % 2 ? '#6fd25a' : '#3a8c32'}"/>`).join('')}</g>`;
+  const s = 6, gy = 288 - 26 * s;
+  const L = 350, R = 490, hy = gy + 15 * s;                                // sprite x positions, hand height
+  const friend = (x, pal, cls) => `<g class="${cls}"><g class="idle">${PixelCharacter(x, gy, s, pal)}</g></g>`;
+  const arm = (x0, dir, pal) => `<g class="arm" style="transform-origin:${x0}px ${hy}px"><rect x="${dir > 0 ? x0 : x0 - 30}" y="${hy}" width="30" height="12" fill="${PAL[pal].K}"/><rect x="${dir > 0 ? x0 + 24 : x0 - 36}" y="${hy}" width="12" height="12" fill="#ff93ab"/></g>`;
+  const birds = PixelBird(40, 16, -2) + PixelBird(80, 21, -9, 3) + PixelBird(24, 26, -15, 3);
+  const css = CSS + `
+.walkL{animation:wl 20s steps(13) infinite}@keyframes wl{0%{transform:translateX(-300px)}20%,100%{transform:translateX(0)}}
+.walkR{animation:wr 20s steps(13) infinite}@keyframes wr{0%{transform:translateX(300px)}20%,100%{transform:translateX(0)}}
+.arm{animation:arm 20s steps(3) infinite}@keyframes arm{0%,30%{transform:scaleX(0)}34%,88%{transform:scaleX(1)}90%,100%{transform:scaleX(0)}}
+/* smooth camera: continuous eased scale, NOT steps(), GPU-composited -> no lag */
+.cam{transform-origin:480px ${hy}px;will-change:transform;animation:cam 20s infinite}
+@keyframes cam{0%,28%{transform:scale(1);animation-timing-function:cubic-bezier(.45,0,.2,1)}42%,82%{transform:scale(1.8);animation-timing-function:cubic-bezier(.45,0,.2,1)}95%,100%{transform:scale(1)}}`;
+  const camAttr = HS ? ` transform="translate(480 ${hy}) scale(1.8) translate(-480 -${hy})"` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" width="960" height="320" shape-rendering="crispEdges" role="img" aria-label="Two pixel pandas face the viewer and shake hands on a windy field"><style>${HS ? css.replace(/\.cam\{[^}]*\}/, '') : css}</style>
+<g class="cam"${camAttr}>${sky}${cloud(120, 24, 80)}${cloud(620, 64, 95)}${hills}${ground}${blades}
+${friend(L, 'panda', 'walkL')}${friend(R, 'red', 'walkR')}<g class="walkL">${arm(L + 17 * s, 1, 'panda')}</g><g class="walkR">${arm(R + 3 * s, -1, 'red')}</g>
+${Wind()}${birds}</g></svg>`;
 };
 
-// Left Anime Trainer (Facing Right, extending right arm for handshake)
-const leftTrainer32 = [
-  "........KK....KKK...............",
-  ".......KHHK..KHHHK..............",
-  ".....KKHHHHKKHHHHHKK............",
-  "....KHHHHHHHHHHHHHHHK...........",
-  "..KKHHHHhHHHHHHHHhHHHK..........",
-  ".KHHHHHhHHHHHHHHHHhHHK..........",
-  "..KKKHHHHHHHHHHHHHHHHKKK........",
-  ".KRRRRRRRRRRRRRRRRRRRRRRK.......",
-  "KrrrKKKKHHHHHHHHKKKKrrrrK.......",
-  "KrrK....KHHHHHHKSSKWK............",
-  ".KK.....KHHHHHKSSSSKWK..........",
-  "........KHHHHHKSSSSSSK..........",
-  "........KHHHHKSSSSSSMK..........",
-  ".........KHHK.KSSSSMKK..........",
-  "..........KK..KMMMMK............",
-  "........KKKKKKKVVVVKKKK.........",
-  ".......KvvvvvKVVVVVVUUUK........",
-  "......KvvvvvvKVVVVVUUUUUK.......",
-  "......KvvvvvvKVVVVVUUUUUK.......",
-  "......KvvvvvvKVVVVVVUUUUKKKK....",
-  "......KvvvvvvKVVVVVVVUKSSSSSK...",
-  ".......KKKKKKKVVVVVVVKKMMMMSSK..",
-  ".........KGGGGGGGGGGGGK..KKKK...",
-  ".........KGGGGGGGGGGGGK.........",
-  "........KGGGGgKKKKGGGGgK........",
-  "........KGGGGgK..KGGGGgK........",
-  "........KGGGGgK..KGGGGgK........",
-  ".......KGGGGggK..KGGGGggK.......",
-  ".......KvvvvvK....KvvvvvK.......",
-  ".......KvvvvvK....KvvvvvK.......",
-  "......KRRRRRRK...KRRRRRRK.......",
-  "......KKKKKKKK...KKKKKKKK......."
-];
-
-// Right Anime Trainer (Facing Left, extending left arm to clasp hands)
-const rightTrainer32 = [
-  "..............KKKKKKK...........",
-  "............KKCCCCCCCcKK........",
-  "...........KCCCCCCCCCCCcK.......",
-  "..........KCAACCCCCCAACCCK......",
-  ".........KCCAAACCCCAAACCCCK.....",
-  "........KCCCCAACCCCAACCCCCK.....",
-  "........KCCCCCKKKKKCCCCCCCCK....",
-  "........KCCCcKWKSSKCCCCCCCCK....",
-  "........KCCCcKWKSSSSKCCCCCCK....",
-  ".........KCCCKSSSSSSKCCCCCK.....",
-  ".........KCCCKMSSSSSSKCCCK......",
-  "..........KCK.KKMSSSSKCCK.......",
-  "...........K....KMMMMKCK........",
-  "..............KKKJJJJJKK........",
-  ".............KJJjJJJJYjJK.......",
-  "............KJJjJJJJJYYjJK......",
-  "...........KJJjJJJJJJJJjJK......",
-  "...KKKK...KJJjJJJJJJJJJJjJK.....",
-  "..KSSSSK.KJJjJJJJJJJJJJJjJK.....",
-  "..KSSMMMKJJjJJKKKJJJJJJJJJK.....",
-  "...KKKK..KKKK...KTTTTTTTTK......",
-  "................KTTTTTTTTK......",
-  "...............KTTTTKKKKTTK.....",
-  "...............KTTTTK..KTTK.....",
-  "...............KTTTTK..KTTK.....",
-  "..............KTTTTTK..KTTTK....",
-  "..............KTTTTTK..KTTTK....",
-  "..............KWWWWWK..KWWWWK...",
-  ".............KRRRRRRK.KRRRRRRK..",
-  ".............KWWWWWWK.KWWWWWWK..",
-  ".............KKKKKKKK.KKKKKKKK..",
-  "................................"
-];
-
-// ============================================================================
-// 3. GENERATE BANNER.SVG (GBA Title Screen + Uploaded Panda + Looping Text)
-// ============================================================================
-function generateBanner() {
-  const pandaSvg = renderMatrix(pandaMatrix, pandaPalette, 3, 55, 52);
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 240" width="100%" height="100%" shape-rendering="crispEdges">
-  <defs>
-    <style>
-      .pixel-title {
-        font-family: 'Press Start 2P', 'Courier New', monospace;
-        font-weight: 900;
-        font-size: 30px;
-        fill: #ffd43b;
-        letter-spacing: 2px;
-      }
-      .pixel-title-shadow {
-        font-family: 'Press Start 2P', 'Courier New', monospace;
-        font-weight: 900;
-        font-size: 30px;
-        fill: #1a1b26;
-        letter-spacing: 2px;
-      }
-      .pixel-sub {
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        font-size: 15px;
-        fill: #ffffff;
-        letter-spacing: 1.5px;
-      }
-      .gba-badge {
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        font-size: 12px;
-        fill: #14141f;
-      }
-      /* Infinite Looping Typewriter Animations */
-      .loop-type-1 {
-        clip-path: inset(0 100% 0 0);
-        animation: typeLoop1 8s steps(36, end) infinite;
-      }
-      .loop-type-2 {
-        clip-path: inset(0 100% 0 0);
-        animation: typeLoop2 8s steps(44, end) infinite;
-      }
-      @keyframes typeLoop1 {
-        0%, 5% { clip-path: inset(0 100% 0 0); }
-        35%, 85% { clip-path: inset(0 0% 0 0); }
-        95%, 100% { clip-path: inset(0 100% 0 0); }
-      }
-      @keyframes typeLoop2 {
-        0%, 35% { clip-path: inset(0 100% 0 0); }
-        65%, 85% { clip-path: inset(0 0% 0 0); }
-        95%, 100% { clip-path: inset(0 100% 0 0); }
-      }
-      /* Panda Bounce & Sparkle Animations */
-      .panda-bounce {
-        animation: pandaIdle 1.6s steps(2, end) infinite;
-      }
-      @keyframes pandaIdle {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-4px); }
-      }
-      .cloud-drift {
-        animation: cloudMove 28s steps(120, end) infinite;
-      }
-      @keyframes cloudMove {
-        0% { transform: translateX(0px); }
-        100% { transform: translateX(-180px); }
-      }
-      .blink-cursor {
-        animation: blink 0.8s steps(2, end) infinite;
-      }
-      @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0; }
-      }
-    </style>
-
-    <!-- GBA Dither Pattern -->
-    <pattern id="ditherSky" width="8" height="8" patternUnits="userSpaceOnUse">
-      <rect width="8" height="8" fill="#3b82f6"/>
-      <rect x="0" y="0" width="4" height="4" fill="#60a5fa"/>
-      <rect x="4" y="4" width="4" height="4" fill="#60a5fa"/>
-    </pattern>
-    <pattern id="ditherBand" width="8" height="8" patternUnits="userSpaceOnUse">
-      <rect width="8" height="8" fill="#60a5fa"/>
-      <rect x="0" y="0" width="4" height="4" fill="#93c5fd"/>
-      <rect x="4" y="4" width="4" height="4" fill="#93c5fd"/>
-    </pattern>
-  </defs>
-
-  <!-- Outer GBA Wood & Gold Pixel Frame -->
-  <rect x="0" y="0" width="900" height="240" fill="#14141f"/>
-  <rect x="4" y="4" width="892" height="232" fill="#7c4dff"/>
-  <rect x="8" y="8" width="884" height="224" fill="#d97706"/>
-  <rect x="12" y="12" width="876" height="216" fill="#fef08a"/>
-  <rect x="16" y="16" width="868" height="208" fill="#1e293b"/>
-
-  <!-- Sky Background Bands (Pokémon Emerald Horizon) -->
-  <rect x="20" y="20" width="860" height="70" fill="#2563eb"/>
-  <rect x="20" y="90" width="860" height="16" fill="url(#ditherSky)"/>
-  <rect x="20" y="106" width="860" height="50" fill="#60a5fa"/>
-  <rect x="20" y="156" width="860" height="16" fill="url(#ditherBand)"/>
-  <rect x="20" y="172" width="860" height="32" fill="#93c5fd"/>
-
-  <!-- Distant Pixel Mountains & Trees -->
-  <polygon points="20,204 90,140 160,204" fill="#1e3a8a"/>
-  <polygon points="120,204 210,120 300,204" fill="#1d4ed8"/>
-  <polygon points="680,204 770,130 860,204" fill="#1e3a8a"/>
-  <rect x="20" y="196" width="860" height="12" fill="#15803d"/>
-  <rect x="20" y="208" width="860" height="12" fill="#166534"/>
-
-  <!-- Drifting Pixel Clouds -->
-  <g class="cloud-drift" fill="#ffffff" opacity="0.9">
-    <rect x="180" y="38" width="64" height="12"/>
-    <rect x="192" y="28" width="40" height="10"/>
-    <rect x="520" y="48" width="88" height="14"/>
-    <rect x="536" y="36" width="56" height="12"/>
-    <rect x="820" y="34" width="60" height="12"/>
-    <rect x="832" y="24" width="36" height="10"/>
-  </g>
-
-  <!-- GBA Top-Left HUD Status Icons -->
-  <g transform="translate(32, 28)">
-    <!-- Pixel Heart -->
-    <rect x="4" y="0" width="4" height="4" fill="#ef4444"/>
-    <rect x="12" y="0" width="4" height="4" fill="#ef4444"/>
-    <rect x="0" y="4" width="20" height="4" fill="#ef4444"/>
-    <rect x="0" y="8" width="20" height="4" fill="#dc2626"/>
-    <rect x="4" y="12" width="12" height="4" fill="#b91c1c"/>
-    <rect x="8" y="16" width="4" height="4" fill="#991b1b"/>
-    <!-- Lv. 99 Badge -->
-    <rect x="30" y="0" width="96" height="20" fill="#14141f"/>
-    <rect x="32" y="2" width="92" height="16" fill="#ffd43b"/>
-    <text x="40" y="14" class="gba-badge">LV.99 SEN.DEV</text>
-  </g>
-
-  <!-- GBA Top-Right Cartridge / Offline Mode Indicator -->
-  <g transform="translate(715, 28)">
-    <rect x="0" y="0" width="150" height="22" fill="#14141f"/>
-    <rect x="2" y="2" width="146" height="18" fill="#10b981"/>
-    <rect x="10" y="7" width="8" height="8" fill="#ffffff" class="blink-cursor"/>
-    <text x="24" y="15" class="gba-badge">GBA-ROM: OFFLINE</text>
-  </g>
-
-  <!-- Left Pedestal & Uploaded Pixel Panda Mascot -->
-  <g transform="translate(0, 8)">
-    <!-- Grassy Battle Platform under Panda -->
-    <rect x="42" y="138" width="122" height="16" fill="#14532d"/>
-    <rect x="36" y="132" width="134" height="14" fill="#22c55e"/>
-    <rect x="44" y="135" width="118" height="8" fill="#86efac"/>
-    <!-- Animated Uploaded Panda -->
-    <g class="panda-bounce">
-      ${pandaSvg}
-    </g>
-    <!-- Pixel Sparkles around Panda -->
-    <g fill="#fef08a" class="blink-cursor">
-      <rect x="42" y="72" width="4" height="12"/>
-      <rect x="38" y="76" width="12" height="4"/>
-      <rect x="158" y="64" width="4" height="12"/>
-      <rect x="154" y="68" width="12" height="4"/>
-    </g>
-  </g>
-
-  <!-- Right Main Nameplate & Looping Dialogue Box -->
-  <g transform="translate(200, 48)">
-    <!-- Name Shadow & Crisp Pixel Name -->
-    <text x="4" y="44" class="pixel-title-shadow">PANDA // @FIND-SKILLS</text>
-    <text x="0" y="40" class="pixel-title">PANDA // @FIND-SKILLS</text>
-
-    <!-- Classic Pokémon Emerald Dialogue Frame -->
-    <rect x="0" y="60" width="656" height="86" fill="#14141f"/>
-    <rect x="4" y="64" width="648" height="78" fill="#f8fafc"/>
-    <rect x="8" y="68" width="640" height="70" fill="#1e293b"/>
-
-    <!-- Corner Gold Rivets -->
-    <rect x="8" y="68" width="8" height="8" fill="#ffd43b"/>
-    <rect x="640" y="68" width="8" height="8" fill="#ffd43b"/>
-    <rect x="8" y="130" width="8" height="8" fill="#ffd43b"/>
-    <rect x="640" y="130" width="8" height="8" fill="#ffd43b"/>
-
-    <!-- Looping Typewriter Text Lines -->
-    <g class="loop-type-1">
-      <text x="26" y="96" class="pixel-sub" fill="#38bdf8">&gt; SENIOR MOTION DESIGNER &amp; FULL-STACK TRAINER</text>
-    </g>
-    <g class="loop-type-2">
-      <text x="26" y="122" class="pixel-sub" fill="#a7f3d0">&gt; PIXEL-PERFECT UI, SHADERS &amp; OPEN-SOURCE TOOLS_</text>
-    </g>
-
-    <!-- Blinking GBA Red Next-Page Arrow -->
-    <g transform="translate(620, 114)" class="blink-cursor">
-      <rect x="0" y="0" width="16" height="4" fill="#ef4444"/>
-      <rect x="4" y="4" width="8" height="4" fill="#ef4444"/>
-      <rect x="6" y="8" width="4" height="4" fill="#ef4444"/>
-    </g>
-  </g>
-</svg>`;
-
-  fs.writeFileSync('banner.svg', svg, 'utf8');
+const out = HS ? 'hs_' : '';
+writeFileSync('assets/' + out + 'banner.svg', Banner());
+writeFileSync('assets/' + out + 'grass.svg', GrassScene());
+if (!HS) {
+// =====================  README ASSETS (GBA dialog style)  =====================
+const svgDoc = (w, h, body, label, p = 14) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" shape-rendering="crispEdges" role="img" aria-label="${label}" style="--p:${p}s"><style>${CSS}</style>${body}</svg>`;
+const notch = (x, y, w, h, c) => `<rect x="${x + 4}" y="${y}" width="${w - 8}" height="${h}" fill="${c}"/><rect x="${x}" y="${y + 4}" width="${w}" height="${h - 8}" fill="${c}"/>`; // corner-notched box
+function dialog(w, lines, s = 3, label = '') {                       // Pokemon-style text box, text typed per character
+  const step = 0.04, lh = 7 * s + 12, h = 28 + lines.length * lh + 8; let t = 0.3;
+  let b = notch(0,0,w,h,'#383838') + notch(4,4,w-8,h-8,'#f8f8f8') + notch(8,8,w-16,h-16,'#5a6ad0') + notch(12,12,w-24,h-24,'#f8f8f8');
+  lines.forEach((l, i) => { const [str, fill = '#383838'] = Array.isArray(l) ? l : [l], y = 24 + i * lh;
+    b += text(str, 29, y + 3, s, '#b8b8c8', t, step) + text(str, 26, y, s, fill, t, step); t += str.length * step; }); // grey shadow + text
+  b += `<g class="cur">${sprite(['#####', '.###.', '..#..'], { '#': '#e04040' }, 4, w - 48, h - 40)}</g>`;   // blinking "next" arrow
+  return svgDoc(w, h, b, label || lines.map(l => [].concat(l)[0]).join('. '), Math.ceil((t + 4) / 0.92));
 }
-
-// ============================================================================
-// 4. GENERATE ABOUT.SVG (GBA Trainer Status Screen + Looping Bio & Skill Bars)
-// ============================================================================
-function generateAbout() {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" width="100%" height="100%" shape-rendering="crispEdges">
-  <defs>
-    <style>
-      .gba-header {
-        font-family: 'Courier New', monospace;
-        font-weight: 900;
-        font-size: 18px;
-        fill: #fef08a;
-        letter-spacing: 2px;
-      }
-      .gba-text {
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        font-size: 14px;
-        fill: #f1f5f9;
-        letter-spacing: 1px;
-      }
-      .gba-stat-label {
-        font-family: 'Courier New', monospace;
-        font-weight: 900;
-        font-size: 13px;
-        fill: #ffd43b;
-      }
-      /* Looping Typewriter Lines for Trainer Log */
-      .bio-loop-1 { animation: bioType1 10s steps(38, end) infinite; }
-      .bio-loop-2 { animation: bioType2 10s steps(38, end) infinite; }
-      .bio-loop-3 { animation: bioType3 10s steps(38, end) infinite; }
-      .bio-loop-4 { animation: bioType4 10s steps(38, end) infinite; }
-
-      @keyframes bioType1 {
-        0%, 4% { clip-path: inset(0 100% 0 0); }
-        20%, 88% { clip-path: inset(0 0% 0 0); }
-        96%, 100% { clip-path: inset(0 100% 0 0); }
-      }
-      @keyframes bioType2 {
-        0%, 20% { clip-path: inset(0 100% 0 0); }
-        40%, 88% { clip-path: inset(0 0% 0 0); }
-        96%, 100% { clip-path: inset(0 100% 0 0); }
-      }
-      @keyframes bioType3 {
-        0%, 40% { clip-path: inset(0 100% 0 0); }
-        60%, 88% { clip-path: inset(0 0% 0 0); }
-        96%, 100% { clip-path: inset(0 100% 0 0); }
-      }
-      @keyframes bioType4 {
-        0%, 60% { clip-path: inset(0 100% 0 0); }
-        80%, 88% { clip-path: inset(0 0% 0 0); }
-        96%, 100% { clip-path: inset(0 100% 0 0); }
-      }
-
-      /* Animated GBA HP/EXP Skill Bars */
-      .hp-fill-1 { animation: hpPulse 4s steps(8, end) infinite; }
-      @keyframes hpPulse {
-        0%, 100% { width: 220px; }
-        50% { width: 204px; }
-      }
-    </style>
-
-    <pattern id="pokedexGrid" width="16" height="16" patternUnits="userSpaceOnUse">
-      <rect width="16" height="16" fill="#0f172a"/>
-      <rect x="0" y="0" width="16" height="2" fill="#1e293b"/>
-      <rect x="0" y="0" width="2" height="16" fill="#1e293b"/>
-    </pattern>
-  </defs>
-
-  <!-- Outer GBA Pokédex Frame -->
-  <rect x="0" y="0" width="900" height="320" fill="#14141f"/>
-  <rect x="4" y="4" width="892" height="312" fill="#334155"/>
-  <rect x="8" y="8" width="884" height="304" fill="#94a3b8"/>
-  <rect x="12" y="12" width="876" height="296" fill="url(#pokedexGrid)"/>
-
-  <!-- Top GBA Menu Header Bar -->
-  <rect x="20" y="20" width="860" height="38" fill="#1e1b4b"/>
-  <rect x="20" y="54" width="860" height="4" fill="#ffd43b"/>
-  <rect x="32" y="30" width="16" height="16" fill="#ef4444"/>
-  <rect x="36" y="34" width="8" height="8" fill="#fca5a5"/>
-  <text x="60" y="44" class="gba-header">TRAINER PASSPORT // ID NO. 00420</text>
-  <text x="650" y="44" class="gba-header" fill="#38bdf8">TIME: 999:59</text>
-
-  <!-- LEFT PANEL: Looping Trainer Bio & Mission Log -->
-  <g transform="translate(24, 72)">
-    <rect x="0" y="0" width="416" height="220" fill="#14141f"/>
-    <rect x="4" y="4" width="408" height="212" fill="#f8fafc"/>
-    <rect x="8" y="8" width="400" height="204" fill="#0f172a"/>
-
-    <!-- Subheader -->
-    <rect x="16" y="16" width="384" height="28" fill="#1e293b"/>
-    <text x="26" y="35" class="gba-stat-label">&gt; ACTIVE QUEST LOG [LOOPING]</text>
-
-    <!-- Looping Typewriter Lines -->
-    <g class="bio-loop-1">
-      <text x="24" y="74" class="gba-text" fill="#38bdf8">* CLASS: Senior Motion &amp; UI Architect</text>
-    </g>
-    <g class="bio-loop-2">
-      <text x="24" y="106" class="gba-text" fill="#4ade80">* SPECIALTY: 60FPS SVG &amp; Pixel Shaders</text>
-    </g>
-    <g class="bio-loop-3">
-      <text x="24" y="138" class="gba-text" fill="#f472b6">* ENGINE: React, Next.js, Rust, WebGL</text>
-    </g>
-    <g class="bio-loop-4">
-      <text x="24" y="170" class="gba-text" fill="#fde047">* STATUS: Building legendary repos!</text>
-    </g>
-
-    <!-- Bottom Badge Strip -->
-    <rect x="16" y="184" width="384" height="20" fill="#1e293b"/>
-    <text x="26" y="198" class="gba-text" font-size="11" fill="#94a3b8">BADGES: [★1] [★2] [★3] [★4] [★5] [★6] [★7] [★8]</text>
-  </g>
-
-  <!-- RIGHT PANEL: GBA Battle Stats & Tech Stack HP Bars -->
-  <g transform="translate(456, 72)">
-    <rect x="0" y="0" width="420" height="220" fill="#14141f"/>
-    <rect x="4" y="4" width="412" height="212" fill="#f8fafc"/>
-    <rect x="8" y="8" width="404" height="204" fill="#0f172a"/>
-
-    <rect x="16" y="16" width="388" height="28" fill="#1e293b"/>
-    <text x="26" y="35" class="gba-stat-label">&gt; PARTY STATS // TECH MASTERY</text>
-
-    <!-- Stat 1 -->
-    <text x="24" y="72" class="gba-stat-label">MOTION / SVG</text>
-    <rect x="150" y="58" width="236" height="18" fill="#1e293b"/>
-    <rect x="154" y="62" width="220" height="10" fill="#22c55e" class="hp-fill-1"/>
-    <text x="342" y="54" class="gba-text" font-size="11" fill="#4ade80">99/99</text>
-
-    <!-- Stat 2 -->
-    <text x="24" y="112" class="gba-stat-label">TYPESCRIPT</text>
-    <rect x="150" y="98" width="236" height="18" fill="#1e293b"/>
-    <rect x="154" y="102" width="212" height="10" fill="#38bdf8"/>
-    <text x="342" y="94" class="gba-text" font-size="11" fill="#38bdf8">96/99</text>
-
-    <!-- Stat 3 -->
-    <text x="24" y="152" class="gba-stat-label">REACT / NEXT</text>
-    <rect x="150" y="138" width="236" height="18" fill="#1e293b"/>
-    <rect x="154" y="142" width="216" height="10" fill="#a855f7"/>
-    <text x="342" y="134" class="gba-text" font-size="11" fill="#c084fc">98/99</text>
-
-    <!-- Stat 4 -->
-    <text x="24" y="192" class="gba-stat-label">UI / PIXEL ART</text>
-    <rect x="150" y="178" width="236" height="18" fill="#1e293b"/>
-    <rect x="154" y="182" width="228" height="10" fill="#eab308"/>
-    <text x="342" y="174" class="gba-text" font-size="11" fill="#fde047">MAX</text>
-  </g>
-</svg>`;
-
-  fs.writeFileSync('about.svg', svg, 'utf8');
+const A = (n, s) => writeFileSync(`assets/${n}.svg`, s);
+A('h-about', dialog(960, ['ABOUT ME'], 4));            A('h-stack', dialog(960, ['TECH STACK'], 4));
+A('h-projects', dialog(960, ['PROJECTS'], 4));          A('h-analytics', dialog(960, ['GITHUB ANALYTICS'], 4));
+A('h-graph', dialog(960, ['CONTRIBUTION GRAPH'], 4));   A('h-connect', dialog(960, ["LET'S CONNECT"], 4));
+A('trainer', dialog(960, [['TRAINER: SUMAN NAYAK', '#d9650a'], 'CLASS: AI/ML STUDENT AND BUILDER', 'FAVOURITE MOVES: CV, GEN AI, LLMS'], 3, 'Trainer card'));
+A('about', dialog(960, ['BE IN AI & ML AT HKBK COLLEGE OF ENGINEERING', 'FOCUS: COMPUTER VISION, GENERATIVE AI, LLMS',
+  'BUILDING: MEMORYMATE, MOBILE APP - IN PROGRESS', 'GOAL: AI/ML ENGINEER - CV AND GEN AI PRODUCTS'], 3, 'About me'));
+A('p-orbital', dialog(960, [['ORBITAL-EYE', '#d9650a'], 'REAL-TIME 3D SATELLITE TRACKING - TEAM OF 3', 'FASTAPI  POSTGRESQL  REACT'], 3));
+A('p-vallet', dialog(960, [['VALLET', '#d9650a'], 'AI REMITTANCE COMPARATOR', 'PYTHON  FASTAPI  POSTGRESQL  REACT'], 3));
+A('p-memorymate', dialog(960, [['MEMORYMATE', '#d9650a'], 'MOBILE APP - IN PROGRESS', 'REACT NATIVE  EXPO  FIREBASE'], 3));
+A('b-linkedin', dialog(232, ['LINKEDIN'], 3)); A('b-instagram', dialog(232, ['INSTAGRAM'], 3)); A('b-github', dialog(232, ['GITHUB'], 3));
+A('footer', dialog(960, ['SEE YOU IN THE NEXT COMMIT!'], 4));
+const TILES = [['PYTHON','#3776ab'],['FASTAPI','#05998b'],['REACT','#61dafb'],['JS','#f7df1e'],['POSTGRES','#336791'],
+               ['FIREBASE','#ffca28'],['DOCKER','#2496ed'],['GIT','#f05032'],['GITHUB','#181717'],['VSCODE','#007acc']];
+A('stack', svgDoc(960, 116, TILES.map(([n, c], i) => { const x = (i % 5) * 198, y = Math.floor(i / 5) * 64;
+  return notch(x,y,168,52,'#383838') + notch(x+4,y+4,160,44,'#f8f8f8') + `<rect x="${x+14}" y="${y+14}" width="24" height="24" fill="${c}"/>` + text(n, x+46, y+19, 2, '#383838', .3 + i * .5, .05);
+}).join(''), 'Tech stack: Python, FastAPI, React, JS, Postgres, Firebase, Docker, Git, GitHub, VS Code', 10));
 }
-
-// ============================================================================
-// 5. GENERATE GRASS.SVG (64x64 Anime Characters Handshake Facing Each Other)
-// ============================================================================
-function generateGrass() {
-  // 32x32 matrices rendered at scale=2 => True 64x64 Pixel Anime Sprites!
-  // Positioned so their extended hands clasp at (448, 150)
-  const leftHeroSvg = renderMatrix(leftTrainer32, animePalette, 2, 390, 110);
-  const rightRivalSvg = renderMatrix(rightTrainer32, animePalette, 2, 444, 112);
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" width="100%" height="100%" shape-rendering="crispEdges">
-  <defs>
-    <style>
-      .battle-text {
-        font-family: 'Courier New', monospace;
-        font-weight: 900;
-        font-size: 15px;
-        fill: #ffffff;
-        letter-spacing: 1px;
-      }
-      .hud-label {
-        font-family: 'Courier New', monospace;
-        font-weight: 900;
-        font-size: 12px;
-        fill: #14141f;
-      }
-      /* Subtle GBA Trainer Breathing & Handshake Motion */
-      .trainer-left {
-        animation: bobLeft 1.2s steps(2, end) infinite;
-      }
-      .trainer-right {
-        animation: bobRight 1.2s steps(2, end) infinite;
-      }
-      @keyframes bobLeft {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-2px); }
-      }
-      @keyframes bobRight {
-        0%, 100% { transform: translateY(-2px); }
-        50% { transform: translateY(0px); }
-      }
-      /* Handshake Spark Burst Animation */
-      .handshake-spark {
-        animation: sparkPulse 0.8s steps(2, end) infinite;
-      }
-      @keyframes sparkPulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.25; }
-      }
-      /* Looping Battle Dialogue Text */
-      .battle-loop-1 {
-        animation: bType1 7s steps(42, end) infinite;
-      }
-      .battle-loop-2 {
-        animation: bType2 7s steps(42, end) infinite;
-      }
-      @keyframes bType1 {
-        0%, 5% { clip-path: inset(0 100% 0 0); }
-        35%, 85% { clip-path: inset(0 0% 0 0); }
-        95%, 100% { clip-path: inset(0 100% 0 0); }
-      }
-      @keyframes bType2 {
-        0%, 35% { clip-path: inset(0 100% 0 0); }
-        65%, 85% { clip-path: inset(0 0% 0 0); }
-        95%, 100% { clip-path: inset(0 100% 0 0); }
-      }
-    </style>
-
-    <!-- GBA Tall Grass Tile Pattern -->
-    <pattern id="tallGrass" width="16" height="16" patternUnits="userSpaceOnUse">
-      <rect width="16" height="16" fill="#16a34a"/>
-      <rect x="2" y="4" width="4" height="10" fill="#15803d"/>
-      <rect x="8" y="2" width="4" height="12" fill="#15803d"/>
-      <rect x="4" y="2" width="2" height="6" fill="#4ade80"/>
-      <rect x="10" y="0" width="2" height="6" fill="#4ade80"/>
-    </pattern>
-  </defs>
-
-  <!-- Outer GBA Frame -->
-  <rect x="0" y="0" width="900" height="280" fill="#14141f"/>
-  <rect x="4" y="4" width="892" height="272" fill="#d97706"/>
-  <rect x="8" y="8" width="884" height="264" fill="#fef08a"/>
-
-  <!-- Pokémon Emerald Route 101 Meadow Sky & Grass Backdrop -->
-  <rect x="12" y="12" width="876" height="100" fill="#38bdf8"/>
-  <rect x="12" y="92" width="876" height="24" fill="#7dd3fc"/>
-  <rect x="12" y="112" width="876" height="90" fill="#4ade80"/>
-  <rect x="12" y="136" width="876" height="66" fill="#22c55e"/>
-
-  <!-- Left & Right Stylized GBA Cliff Terraces -->
-  <g fill="#78350f">
-    <rect x="12" y="88" width="150" height="48"/>
-    <rect x="738" y="88" width="150" height="48"/>
-  </g>
-  <g fill="#a16207">
-    <rect x="16" y="92" width="142" height="40"/>
-    <rect x="742" y="92" width="142" height="40"/>
-  </g>
-  <g fill="#15803d">
-    <rect x="12" y="80" width="154" height="12"/>
-    <rect x="734" y="80" width="154" height="12"/>
-  </g>
-
-  <!-- Tall Grass Patches Flanking the Center Arena -->
-  <rect x="24" y="140" width="230" height="48" fill="url(#tallGrass)"/>
-  <rect x="646" y="140" width="230" height="48" fill="url(#tallGrass)"/>
-
-  <!-- Pixel Wildflowers -->
-  <g>
-    <rect x="280" y="150" width="6" height="6" fill="#f43f5e"/>
-    <rect x="282" y="152" width="2" height="2" fill="#fef08a"/>
-    <rect x="610" y="156" width="6" height="6" fill="#f43f5e"/>
-    <rect x="612" y="158" width="2" height="2" fill="#fef08a"/>
-    <rect x="320" y="172" width="6" height="6" fill="#fef08a"/>
-    <rect x="570" y="170" width="6" height="6" fill="#fef08a"/>
-  </g>
-
-  <!-- Center Dirt & Grass Handshake Arena -->
-  <rect x="350" y="164" width="200" height="18" fill="#15803d"/>
-  <rect x="362" y="160" width="176" height="18" fill="#86efac"/>
-  <rect x="374" y="163" width="152" height="12" fill="#fde68a"/>
-
-  <!-- GBA Floating Nameplates Above Both Trainers -->
-  <!-- Left Trainer HUD -->
-  <g transform="translate(220, 26)">
-    <rect x="0" y="0" width="176" height="36" fill="#14141f"/>
-    <rect x="3" y="3" width="170" height="30" fill="#fef3c7"/>
-    <text x="12" y="17" class="hud-label">DEV_HERO   Lv99</text>
-    <rect x="12" y="22" width="146" height="6" fill="#14141f"/>
-    <rect x="14" y="24" width="142" height="2" fill="#22c55e"/>
-  </g>
-
-  <!-- Right Trainer HUD -->
-  <g transform="translate(504, 26)">
-    <rect x="0" y="0" width="176" height="36" fill="#14141f"/>
-    <rect x="3" y="3" width="170" height="30" fill="#fef3c7"/>
-    <text x="12" y="17" class="hud-label">OPEN_SRC   Lv99</text>
-    <rect x="12" y="22" width="146" height="6" fill="#14141f"/>
-    <rect x="14" y="24" width="142" height="2" fill="#22c55e"/>
-  </g>
-
-  <!-- ================================================================== -->
-  <!-- 64x64 ANIME CHARACTERS FACING EACH OTHER DOING HANDSHAKE           -->
-  <!-- ================================================================== -->
-  <g class="trainer-left">
-    ${leftHeroSvg}
-  </g>
-  <g class="trainer-right">
-    ${rightRivalSvg}
-  </g>
-
-  <!-- Pixel Handshake Impact Burst Rays (Centered on Clasped Hands) -->
-  <g class="handshake-spark" fill="#ffd43b">
-    <rect x="448" y="132" width="4" height="8"/>
-    <rect x="448" y="164" width="4" height="8"/>
-    <rect x="434" y="136" width="6" height="4"/>
-    <rect x="460" y="136" width="6" height="4"/>
-    <rect x="434" y="160" width="6" height="4"/>
-    <rect x="460" y="160" width="6" height="4"/>
-  </g>
-
-  <!-- Bottom Pokémon GBA Battle Dialogue Box (Looping Text) -->
-  <g transform="translate(12, 196)">
-    <rect x="0" y="0" width="876" height="72" fill="#14141f"/>
-    <rect x="4" y="4" width="868" height="64" fill="#f8fafc"/>
-    <rect x="8" y="8" width="860" height="56" fill="#1e293b"/>
-
-    <!-- Looping Battle Prompts -->
-    <g class="battle-loop-1">
-      <text x="28" y="32" class="battle-text" fill="#fde047">* DEV_HERO and OPEN_SRC formed an unstoppable alliance!</text>
-    </g>
-    <g class="battle-loop-2">
-      <text x="28" y="54" class="battle-text" fill="#ffffff">* Ready to collaborate on high-impact projects? Let's connect! ▼</text>
-    </g>
-  </g>
-</svg>`;
-
-  fs.writeFileSync('grass.svg', svg, 'utf8');
-}
-
-// Run all generators
-generateBanner();
-generateAbout();
-generateGrass();
-
-// Clean up unused index.html if it exists
-if (fs.existsSync('index.html')) {
-  fs.unlinkSync('index.html');
-  console.log('Removed unused index.html');
-}
-
-console.log('✅ Successfully generated GBA Pixel SVGs (banner.svg, about.svg, grass.svg)!');
+console.log('done');
