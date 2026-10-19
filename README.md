@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/banner (4).svg" alt="Suman Nayak - AI/ML student and builder" width="100%"/>
+  <img src="./assets/banner.svg" alt="Suman Nayak - AI/ML student and builder" width="100%"/>
 </p>
 
 <p align="center">
@@ -43,5 +43,5 @@
 <p align="center"><img src="./assets/footer.svg" alt="See you in the next commit!" width="100%"/></p>
 
 <p align="center">
-  <img src="./assets/grass (1).svg" width="100%" alt="Two pixel pandas shake hands on a windy field"/>
+  <img src="./assets/grass.svg" width="100%" alt="Two pixel pandas shake hands on a windy field"/>
 </p>
