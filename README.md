@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./banner (2).svg" alt="Suman Nayak - AI/ML student and builder" width="100%"/>
+  <img src="./banner (3).svg" alt="Suman Nayak - AI/ML student and builder" width="100%"/>
 </p>
 
 <p align="center">
@@ -63,5 +63,5 @@
 <p align="center">See you in the next commit 🧢</p>
 
 <p align="center">
-  <img src="./water.svg" width="100%" alt="Pixel water"/>
+  <img src="./grass.svg" width="100%" alt="Two friends shake hands on a windy pixel field"/>
 </p>
