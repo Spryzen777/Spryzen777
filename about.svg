@@ -1,28 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 210" width="100%" height="100%">
   <defs>
     <style>
-      .t-code { font-family: 'Courier New', monospace; font-weight: bold; font-size: 16px; letter-spacing: 1px; }
+      .t-code { font-family: 'Courier New', 'Consolas', monospace; font-weight: bold; font-size: 16px; letter-spacing: 1px; }
       .ty { animation: ty 12s steps(1) infinite backwards; }
       @keyframes ty { 0%{opacity:0} 1%{opacity:1} 90%{opacity:1} 91%{opacity:0} 100%{opacity:0} }
+      
       .cur { animation: cur 0.8s steps(2, end) infinite; }
       @keyframes cur { 50%{opacity:0} }
+
       .bob { animation: bob 1.2s steps(2, end) infinite; }
       @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
+
+      .scanline { animation: scan 4s linear infinite; }
+      @keyframes scan { 0% { transform: translateY(-20px); } 100% { transform: translateY(220px); } }
     </style>
   </defs>
 
-  <!-- ==================== PREMIUM METALLIC GBA FRAME ==================== -->
+  <!-- ==================== METALLIC GBA CASING ==================== -->
   <rect x="4" y="0" width="952" height="210" fill="#1e1e24" />
   <rect x="0" y="4" width="960" height="202" fill="#1e1e24" />
   
-  <!-- Silver Bezel -->
+  <!-- Silver Screen Bezel -->
   <rect x="8" y="4" width="944" height="202" fill="#64748b" />
   <rect x="4" y="8" width="952" height="194" fill="#64748b" />
   <rect x="12" y="8" width="936" height="194" fill="#94a3b8" />
   <rect x="8" y="12" width="944" height="186" fill="#94a3b8" />
   
-  <!-- Inner Screen Background (Solid Dark to bypass Camo bug) -->
+  <!-- Inner Screen LCD Background (Solid Dark) -->
   <rect x="16" y="12" width="928" height="186" fill="#0f172a" />
+
+  <!-- Horizontal LCD Scanline Bars -->
+  <rect x="16" y="32" width="928" height="2" fill="#1e293b" opacity="0.5" />
+  <rect x="16" y="52" width="928" height="2" fill="#1e293b" opacity="0.5" />
+  <rect x="16" y="72" width="928" height="2" fill="#1e293b" opacity="0.5" />
+  <rect x="16" y="92" width="928" height="2" fill="#1e293b" opacity="0.5" />
+  <rect x="16" y="112" width="928" height="2" fill="#1e293b" opacity="0.5" />
+  <rect x="16" y="132" width="928" height="2" fill="#1e293b" opacity="0.5" />
+  <rect x="16" y="152" width="928" height="2" fill="#1e293b" opacity="0.5" />
+  <rect x="16" y="172" width="928" height="2" fill="#1e293b" opacity="0.5" />
+  <rect x="16" y="192" width="928" height="2" fill="#1e293b" opacity="0.5" />
 
   <!-- ==================== ANIMATED HERO AVATAR ==================== -->
   <!-- Avatar Box Frame -->
@@ -73,8 +89,8 @@
       <!-- M --><rect x="108" y="0" width="3" height="21" /><rect x="120" y="0" width="3" height="21" /><rect x="111" y="3" width="3" height="6" /><rect x="117" y="3" width="3" height="6" /><rect x="114" y="6" width="3" height="6" />
       <!-- E --><rect x="126" y="0" width="15" height="3" /><rect x="126" y="3" width="3" height="15" /><rect x="126" y="9" width="12" height="3" /><rect x="126" y="18" width="15" height="3" />
     </g>
-    <!-- Neon Violet Foreground -->
-    <g fill="#a855f7">
+    <!-- Royal Violet Foreground -->
+    <g fill="#8b5cf6">
       <!-- A --><rect x="3" y="0" width="9" height="3" /><rect x="0" y="3" width="3" height="18" /><rect x="12" y="3" width="3" height="18" /><rect x="0" y="9" width="15" height="3" />
       <!-- B --><rect x="18" y="0" width="12" height="21" /><rect x="21" y="3" width="6" height="3" fill="#0f172a" /><rect x="21" y="12" width="6" height="6" fill="#0f172a" /><rect x="27" y="0" width="3" height="21" /><rect x="30" y="3" width="3" height="6" /><rect x="30" y="12" width="3" height="6" />
       <!-- O --><rect x="39" y="0" width="9" height="3" /><rect x="36" y="3" width="3" height="15" /><rect x="48" y="3" width="3" height="15" /><rect x="39" y="18" width="9" height="3" />
@@ -93,9 +109,13 @@
   <rect x="916" y="24" width="2" height="14" fill="#64748b" />
   <rect x="918" y="28" width="4" height="6" fill="#64748b" />
   
+  <!-- Green Bars -->
   <rect x="890" y="28" width="8" height="6" fill="#10b981" />
   <rect x="900" y="28" width="8" height="6" fill="#10b981" />
   <rect x="910" y="28" width="8" height="6" fill="#10b981" />
+
+  <!-- Scanning Hologram Beam -->
+  <rect x="16" y="0" width="928" height="8" fill="#8b5cf6" opacity="0.3" class="scanline" />
 
   <!-- ==================== SYNTAX HIGHLIGHTED BIO LINES ==================== -->
   <!-- Line 1: Cyan -->
