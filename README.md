@@ -7,7 +7,12 @@
 <p align="center"><img src="h-stack.svg" alt="Tech stack" width="100%"/></p>
 <p align="center"><img src="stack.svg" alt="Python, FastAPI, React, JS, Postgres, Firebase, Docker, Git, GitHub, VS Code" width="100%"/></p>
 
-<p align="center"><img src="h-projects.svg" alt="Projects: Orbital-Eye (real-time 3D satellite tracking, FastAPI, PostgreSQL, React), VALLET (AI remittance comparator), MemoryMate (mobile app in progress)" width="100%"/></p>
+<p align="center">
+  <img src="h-projects.svg" alt="Projects" width="100%" align="top"/><br/>
+  <a href="https://github.com/Pavan-Taneesh/Orbital-Eye"><img src="p-orbital.svg" alt="Orbital-Eye: real-time 3D satellite tracking, FastAPI, PostgreSQL, React" width="100%" align="top"/></a><br/>
+  <a href="https://github.com/Spryzen777/VALLET"><img src="p-vallet.svg" alt="VALLET: AI remittance comparator" width="100%" align="top"/></a><br/>
+  <a href="https://github.com/Spryzen777/MemoryMate"><img src="p-memorymate.svg" alt="MemoryMate: mobile app in progress" width="100%" align="top"/></a>
+</p>
 
 <p align="center"><img src="h-analytics.svg" alt="GitHub analytics" width="100%"/></p>
 <p align="center">
@@ -22,7 +27,10 @@
   </picture>
 </p>
 
-<p align="center"><img src="h-connect.svg" alt="Let's connect: LinkedIn, Instagram, GitHub" width="100%"/></p>
+<p align="center">
+  <img src="h-connect.svg" alt="Let's connect" width="100%" align="top"/><br/>
+  <a href="https://www.linkedin.com/in/suman-nayak01/"><img src="b-linkedin.svg" alt="LinkedIn" width="30%" align="top"/></a><a href="https://instagram.com/yumeutsutsu_24"><img src="b-instagram.svg" alt="Instagram" width="40%" align="top"/></a><a href="https://github.com/Spryzen777"><img src="b-github.svg" alt="GitHub" width="30%" align="top"/></a>
+</p>
 
 <p align="center"><img src="footer.svg" alt="See you in the next commit!" width="100%"/></p>
 
