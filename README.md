@@ -2,22 +2,12 @@
   <img src="banner.svg" alt="Suman Nayak - AI/ML student and builder" width="100%"/>
 </p>
 
-<p align="center">
-  <img src="trainer.svg" alt="Trainer card: Suman Nayak, AI/ML student and builder" width="100%"/>
-</p>
-
-<p align="center"><img src="h-about.svg" alt="About me" width="100%"/></p>
 <p align="center"><img src="about.svg" alt="BE in AI and ML at HKBK College of Engineering. Focus: computer vision, generative AI, LLMs. Building MemoryMate. Goal: AI/ML engineer." width="100%"/></p>
 
 <p align="center"><img src="h-stack.svg" alt="Tech stack" width="100%"/></p>
 <p align="center"><img src="stack.svg" alt="Python, FastAPI, React, JS, Postgres, Firebase, Docker, Git, GitHub, VS Code" width="100%"/></p>
 
-<p align="center"><img src="h-projects.svg" alt="Projects" width="100%"/></p>
-<p align="center">
-  <a href="https://github.com/Pavan-Taneesh/Orbital-Eye"><img src="p-orbital.svg" alt="Orbital-Eye: real-time 3D satellite tracking, FastAPI, PostgreSQL, React" width="100%"/></a><br/>
-  <a href="https://github.com/Spryzen777/VALLET"><img src="p-vallet.svg" alt="VALLET: AI remittance comparator" width="100%"/></a><br/>
-  <a href="https://github.com/Spryzen777/MemoryMate"><img src="p-memorymate.svg" alt="MemoryMate: mobile app in progress" width="100%"/></a>
-</p>
+<p align="center"><img src="h-projects.svg" alt="Projects: Orbital-Eye (real-time 3D satellite tracking, FastAPI, PostgreSQL, React), VALLET (AI remittance comparator), MemoryMate (mobile app in progress)" width="100%"/></p>
 
 <p align="center"><img src="h-analytics.svg" alt="GitHub analytics" width="100%"/></p>
 <p align="center">
