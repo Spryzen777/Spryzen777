@@ -22,12 +22,7 @@
   </picture>
 </p>
 
-<p align="center"><img src="h-connect.svg" alt="Let's connect" width="100%"/></p>
-<p align="center">
-  <a href="https://www.linkedin.com/in/suman-nayak01/"><img src="b-linkedin.svg" alt="LinkedIn" width="220"/></a>
-  <a href="https://instagram.com/yumeutsutsu_24"><img src="b-instagram.svg" alt="Instagram" width="220"/></a>
-  <a href="https://github.com/Spryzen777"><img src="b-github.svg" alt="GitHub" width="220"/></a>
-</p>
+<p align="center"><img src="h-connect.svg" alt="Let's connect: LinkedIn, Instagram, GitHub" width="100%"/></p>
 
 <p align="center"><img src="footer.svg" alt="See you in the next commit!" width="100%"/></p>
 
