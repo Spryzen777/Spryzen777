@@ -28,7 +28,7 @@
 </p>
 
 <p align="center">
-  <img src="h-connect.svg" alt="Let's connect" width="100%" align="top"/><br/>
+  <img src="h-connect-v2.svg" alt="Let's connect" width="100%" align="top"/><br/>
   <a href="https://www.linkedin.com/in/suman-nayak01/"><img src="b-linkedin.svg" alt="LinkedIn" width="30%" align="top"/></a><a href="https://instagram.com/yumeutsutsu_24"><img src="b-instagram.svg" alt="Instagram" width="40%" align="top"/></a><a href="https://github.com/Spryzen777"><img src="b-github.svg" alt="GitHub" width="30%" align="top"/></a>
 </p>
 
